@@ -6,36 +6,70 @@ export const InventoryProvider = ({ children }) => {
     const [batches, setBatches] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Mock Data Initialization
+    // ✅ Fetch Inventory
+    const fetchInventory = async () => {
+        try {
+            // TODO: Get actual logged-in Org ID. For now hardcoded or skipped if relying on backend user context
+            // Assuming we might need to filter by the logged in user later. 
+            // For now, let's just fetch all or by a test ID if needed.
+            // Actually, let's assume the user context has the Org ID.
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user || user.role !== 'ROLE_ORG') {
+                setBatches([]);
+                setLoading(false);
+                return;
+            }
+
+            const response = await fetch(`http://localhost:8080/api/inventory/org/${user.id}`);
+            if (response.ok) {
+                const data = await response.json();
+                setBatches(data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch inventory", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        // Simulating API fetch
-        const mockBatches = [
-            { id: 'B-101', bloodGroup: 'A+', collectionDate: '2026-01-10', expiryDate: '2026-02-21', status: 'AVAILABLE', donor: 'John Doe' },
-            { id: 'B-102', bloodGroup: 'O-', collectionDate: '2026-01-05', expiryDate: '2026-02-16', status: 'AVAILABLE', donor: 'Jane Smith' },
-            { id: 'B-103', bloodGroup: 'AB+', collectionDate: '2025-12-25', expiryDate: '2026-01-15', status: 'EXPIRED', donor: 'Mike Ross' },
-            { id: 'B-104', bloodGroup: 'B+', collectionDate: '2026-01-20', expiryDate: '2026-03-03', status: 'AVAILABLE', donor: 'Rachel Zane' },
-            { id: 'B-105', bloodGroup: 'O+', collectionDate: '2026-01-18', expiryDate: '2026-03-01', status: 'AVAILABLE', donor: 'Harvey Specter' },
-            { id: 'B-106', bloodGroup: 'A-', collectionDate: '2026-01-01', expiryDate: '2026-01-25', status: 'AVAILABLE', donor: 'Louis Litt' },
-        ];
-        setBatches(mockBatches);
-        setLoading(false);
+        fetchInventory();
     }, []);
 
-    const addBatch = (newBatch) => {
-        const batch = {
-            ...newBatch,
-            id: `B-${Math.floor(Math.random() * 10000)}`, // Simple ID generation
-            status: 'AVAILABLE'
-        };
-        setBatches(prev => [batch, ...prev]);
+    // ✅ Add Batch
+    const addBatch = async (newBatch) => {
+        try {
+            const user = JSON.parse(localStorage.getItem('user'));
+            const batchPayload = { ...newBatch, organizationId: user.id, status: 'AVAILABLE' };
+
+            const response = await fetch('http://localhost:8080/api/inventory/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(batchPayload),
+            });
+
+            if (response.ok) {
+                const savedBatch = await response.json();
+                setBatches(prev => [savedBatch, ...prev]);
+            }
+        } catch (error) {
+            console.error("Failed to add batch", error);
+        }
+    };
+
+    // ✅ Delete Batch
+    const deleteBatch = async (id) => {
+        try {
+            await fetch(`http://localhost:8080/api/inventory/${id}`, { method: 'DELETE' });
+            setBatches(prev => prev.filter(b => b.id !== id));
+        } catch (error) {
+            console.error("Failed to delete batch", error);
+        }
     };
 
     const updateStatus = (id, newStatus) => {
+        // Placeholder for future update status API
         setBatches(prev => prev.map(b => b.id === id ? { ...b, status: newStatus } : b));
-    };
-
-    const deleteBatch = (id) => {
-        setBatches(prev => prev.filter(b => b.id !== id));
     };
 
     return (

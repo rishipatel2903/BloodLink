@@ -142,7 +142,7 @@ public class AuthController {
 
             if (passwordEncoder.matches(request.getPassword(), user.getPassword())) {
                 String token = jwtUtil.generateToken(user.getEmail(), user.getRole());
-                return ResponseEntity.ok(new AuthResponse(token, user.getName(), user.getRole().name()));
+                return ResponseEntity.ok(new AuthResponse(token, user.getName(), user.getRole().name(), user.getId()));
             }
         }
 
@@ -157,7 +157,7 @@ public class AuthController {
 
             if (passwordEncoder.matches(request.getPassword(), org.getPassword())) {
                 String token = jwtUtil.generateToken(org.getEmail(), org.getRole());
-                return ResponseEntity.ok(new AuthResponse(token, org.getName(), org.getRole().name()));
+                return ResponseEntity.ok(new AuthResponse(token, org.getName(), org.getRole().name(), org.getId()));
             }
         }
 
@@ -208,7 +208,7 @@ public class AuthController {
 
             // 3. Generate Token
             String jwt = jwtUtil.generateToken(user.getEmail(), user.getRole());
-            return ResponseEntity.ok(new AuthResponse(jwt, user.getName(), user.getRole().name()));
+            return ResponseEntity.ok(new AuthResponse(jwt, user.getName(), user.getRole().name(), user.getId()));
 
         } catch (Exception e) {
             e.printStackTrace();

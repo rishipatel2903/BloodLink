@@ -5,7 +5,8 @@ const AddBatchModal = ({ isOpen, onClose, onAdd }) => {
     const [formData, setFormData] = useState({
         bloodGroup: 'A+',
         collectionDate: new Date().toISOString().split('T')[0],
-        donor: ''
+        donor: '',
+        quantity: 1
     });
 
     const handleSubmit = (e) => {
@@ -16,10 +17,11 @@ const AddBatchModal = ({ isOpen, onClose, onAdd }) => {
 
         onAdd({
             ...formData,
+            donorName: formData.donor, // Map donor input to donorName backend field
             expiryDate: expiry.toISOString().split('T')[0]
         });
         onClose();
-        setFormData({ bloodGroup: 'A+', collectionDate: new Date().toISOString().split('T')[0], donor: '' });
+        setFormData({ bloodGroup: 'A+', collectionDate: new Date().toISOString().split('T')[0], donor: '', quantity: 1 });
     };
 
     if (!isOpen) return null;

@@ -17,8 +17,8 @@ const InventoryGrid = ({ batches, onDelete, onUpdateStatus }) => {
                         key={bg}
                         onClick={() => setFilterGroup(bg)}
                         className={`px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${filterGroup === bg
-                                ? 'bg-neon-red text-white'
-                                : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                            ? 'bg-neon-red text-white'
+                            : 'bg-white/5 text-gray-400 hover:bg-white/10'
                             }`}
                     >
                         {bg}
@@ -57,14 +57,14 @@ const InventoryGrid = ({ batches, onDelete, onUpdateStatus }) => {
                                                 {batch.bloodGroup}
                                             </span>
                                         </td>
-                                        <td className="p-4 text-gray-300 text-sm">{batch.donor}</td>
+                                        <td className="p-4 text-gray-300 text-sm">{batch.donorName || batch.donor}</td>
                                         <td className="p-4">
                                             <ExpiryProgressBar collectionDate={batch.collectionDate} expiryDate={batch.expiryDate} />
                                         </td>
                                         <td className="p-4">
                                             <span className={`text-xs px-2 py-1 rounded uppercase tracking-wider font-semibold ${batch.status === 'AVAILABLE' ? 'bg-emerald-500/10 text-emerald-500' :
-                                                    batch.status === 'EXPIRED' ? 'bg-red-500/10 text-red-500' :
-                                                        'bg-yellow-500/10 text-yellow-500'
+                                                (batch.status === 'EXPIRED' || batch.status === 'DISCARDED') ? 'bg-red-500/10 text-red-500' :
+                                                    'bg-yellow-500/10 text-yellow-500'
                                                 }`}>
                                                 {batch.status}
                                             </span>

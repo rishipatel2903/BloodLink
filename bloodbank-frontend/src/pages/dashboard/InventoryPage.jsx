@@ -12,9 +12,39 @@ const InventoryPage = () => {
     if (loading) return <div className="text-center p-8 text-gray-500">Loading Inventory...</div>;
 
     // Derived Stats
-    const totalUnits = batches.length;
-    const criticalCount = batches.filter(b => b.status === 'CRITICAL' || b.expiryDate < new Date().toISOString()).length; // Rough logic
-    const expiredCount = batches.filter(b => b.status === 'EXPIRED').length;
+    const totalUnits = batches.filter(b => {
+        const isExpired = new Date(b.expiryDate) < new Date();
+        return b.status === 'AVAILABLE' && !isExpired;
+    }).length;
+
+    // Group by Blood Group to find lowest stock (Excluding Expired)
+    const stockByGroup = batches.reduce((acc, batch) => {
+        const isExpired = new Date(batch.expiryDate) < new Date();
+        if (batch.status === 'AVAILABLE' && !isExpired) {
+            acc[batch.bloodGroup] = (acc[batch.bloodGroup] || 0) + 1;
+        }
+        return acc;
+    }, {});
+
+    // Find group with minimum stock (ignoring 0 explicitly if needed, but here just min of present)
+    let lowestStockGroup = "N/A";
+    let lowestStockCount = 0;
+
+    if (Object.keys(stockByGroup).length > 0) {
+        const sortedGroups = Object.entries(stockByGroup).sort((a, b) => a[1] - b[1]);
+        lowestStockGroup = sortedGroups[0][0];
+        lowestStockCount = sortedGroups[0][1];
+    }
+
+    // Logic for "Expiring Soon" (e.g., expiry date is within next 7 days and not already expired)
+    const sevenDaysFromNow = new Date();
+    sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+
+    const expiringSoonCount = batches.filter(b => {
+        const expiry = new Date(b.expiryDate);
+        const now = new Date();
+        return b.status === 'AVAILABLE' && expiry > now && expiry <= sevenDaysFromNow;
+    }).length;
 
     return (
         <div className="space-y-8">
@@ -36,13 +66,13 @@ const InventoryPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <StockAlertCard
                     type="CRITICAL"
-                    message="Low Stock: O-"
-                    count="2 Units"
+                    message={lowestStockGroup !== "N/A" ? `Low Stock: ${lowestStockGroup}` : "No Stock Data"}
+                    count={`${lowestStockCount} Units`}
                 />
                 <StockAlertCard
                     type="WARNING"
                     message="Expiring Soon"
-                    count={`${criticalCount} Batches`}
+                    count={`${expiringSoonCount} Batches`}
                 />
                 <div className="p-6 rounded-2xl border border-white/10 bg-white/5 flex items-center justify-between">
                     <div>
