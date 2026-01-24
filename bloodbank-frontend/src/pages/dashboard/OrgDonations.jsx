@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useInventory } from '../../context/InventoryContext';
+import { donationApi } from '../../api/donationApi';
 import { motion } from 'framer-motion';
 
 const OrgDonations = () => {
@@ -11,9 +12,8 @@ const OrgDonations = () => {
 
     const fetchDonations = async () => {
         try {
-            const response = await fetch(`http://localhost:8080/api/donations/org/${user.id}`);
-            const data = await response.json();
-            setDonations(data);
+            const data = await donationApi.getOrgDonations(user.id);
+            setDonations(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error("Failed to fetch donations", error);
         } finally {
@@ -22,15 +22,13 @@ const OrgDonations = () => {
     };
 
     useEffect(() => {
-        fetchDonations();
+        if (user?.id) fetchDonations();
     }, [user.id]);
 
     const handleStatusUpdate = async (id, status) => {
         try {
-            const response = await fetch(`http://localhost:8080/api/donations/${id}/status?status=${status}`, {
-                method: 'PUT'
-            });
-            if (response.ok) fetchDonations();
+            await donationApi.updateStatus(id, status);
+            fetchDonations();
         } catch (error) {
             console.error("Status update failed", error);
         }
@@ -38,14 +36,10 @@ const OrgDonations = () => {
 
     const handleComplete = async (id) => {
         try {
-            const response = await fetch(`http://localhost:8080/api/donations/${id}/complete`, {
-                method: 'POST'
-            });
-            if (response.ok) {
-                alert("Donation Completed! Stock added to inventory.");
-                fetchDonations();
-                refreshInventory(); // ✅ Update inventory list without reload
-            }
+            await donationApi.completeDonation(id);
+            alert("Donation Completed! Stock added to inventory.");
+            fetchDonations();
+            refreshInventory(); // ✅ Update inventory list without reload
         } catch (error) {
             console.error("Completion failed", error);
         }
@@ -84,7 +78,7 @@ const OrgDonations = () => {
                         ) : (
                             donations.map((donation) => (
                                 <tr key={donation.id} className="hover:bg-white/5 transition-colors group">
-                                    <td className="p-6 text-white font-bold">{donation.userName}</td>
+                                    <td className="p-6 text-white font-bold">{donation.userName || donation.donorName}</td>
                                     <td className="p-6">
                                         <span className="px-3 py-1 bg-white/10 rounded-lg text-neon-red font-mono font-bold">{donation.bloodGroup}</span>
                                     </td>

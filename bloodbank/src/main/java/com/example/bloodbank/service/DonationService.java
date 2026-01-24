@@ -49,6 +49,7 @@ public class DonationService {
     }
 
     // 5. Complete Donation (The "Life Line" Logic)
+    @org.springframework.transaction.annotation.Transactional
     public DonationRequest completeDonation(String id) {
         DonationRequest request = donationRepository.findById(id).orElseThrow(() -> new RuntimeException("Request not found"));
         
@@ -56,7 +57,7 @@ public class DonationService {
             throw new RuntimeException("Donation must be APPROVED before completion");
         }
 
-        // A. Add to Inventory (1 Unit)
+        // A. Add to Inventory (1 Unit) - Instantly
         BloodInventory batch = new BloodInventory();
         batch.setOrganizationId(request.getOrganizationId());
         batch.setBloodGroup(request.getBloodGroup());
@@ -66,10 +67,9 @@ public class DonationService {
         batch.setSourceDonorId(request.getUserId());
         batch.setDonorName(request.getUserName());
         
-        // Expiry calc handled in InventoryService.addBatch
-        inventoryService.addBatch(batch);
+        inventoryService.addBatch(batch); // Saves instantly
 
-        // B. Update User Last Donated Date
+        // B. Update User Last Donated Date - Instantly
         Optional<User> userOpt = userRepository.findById(request.getUserId());
         if (userOpt.isPresent()) {
             User user = userOpt.get();
@@ -77,7 +77,7 @@ public class DonationService {
             userRepository.save(user);
         }
 
-        // C. Update Request Status
+        // C. Update Request Status - Instantly
         request.setStatus("COMPLETED");
         return donationRepository.save(request);
     }

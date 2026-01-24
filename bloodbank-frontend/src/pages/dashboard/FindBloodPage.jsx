@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { inventoryApi } from '../../api/inventoryApi';
+import { requestApi } from '../../api/requestApi';
 
 const FindBloodPage = () => {
     const { user } = useAuth();
@@ -19,34 +21,21 @@ const FindBloodPage = () => {
         urgency: 'NORMAL'
     });
 
-    const fetchMyRequests = async () => {
-        try {
-            const response = await fetch(`http://localhost:8080/api/requests/user/${user.id}`);
-            const data = await response.json();
-            setMyRequests(data);
-        } catch (error) {
-            console.error("Failed to fetch my requests", error);
-        }
-    };
 
-    useEffect(() => {
-        if (user) {
-            fetchMyRequests();
-            const interval = setInterval(fetchMyRequests, 5000); // Live tracking
-            return () => clearInterval(interval);
-        }
-    }, [user]);
+
+
 
     const handleSearch = async (e) => {
         e.preventDefault();
         if (!query) return;
         setLoading(true);
+        setResults([]); // Clear previous
         try {
-            const response = await fetch(`http://localhost:8080/api/inventory/search?bloodGroup=${encodeURIComponent(query)}`);
-            const data = await response.json();
-            setResults(data);
+            const data = await inventoryApi.searchStock(query);
+            setResults(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error("Search failed", error);
+            // Optionally set error state here
         } finally {
             setLoading(false);
         }
@@ -69,19 +58,17 @@ const FindBloodPage = () => {
                 urgency: requestMode === 'URGENT' ? 'CRITICAL' : 'NORMAL',
                 status: 'PENDING'
             };
-            const response = await fetch('http://localhost:8080/api/requests/create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            if (response.ok) {
-                alert(targetOrg ? `Request sent to ${targetOrg.name}!` : "Urgent Request Broadcasted!");
-                setShowRequestForm(false);
-                setTargetOrg(null);
-                fetchMyRequests(); // Refresh tracker
-            }
+
+            await requestApi.createRequest(payload);
+
+            alert(targetOrg ? `Request sent to ${targetOrg.name}!` : "Urgent Request Broadcasted!");
+            setShowRequestForm(false);
+            setTargetOrg(null);
+            // reset form data helper if needed
+
         } catch (error) {
             console.error("Request failed", error);
+            alert("Failed to submit request. Please try again.");
         }
     };
 
@@ -138,9 +125,8 @@ const FindBloodPage = () => {
                                         if (val) {
                                             // Trigger search immediately
                                             setLoading(true);
-                                            fetch(`http://localhost:8080/api/inventory/search?bloodGroup=${encodeURIComponent(val)}`)
-                                                .then(res => res.json())
-                                                .then(data => setResults(data))
+                                            inventoryApi.searchStock(val)
+                                                .then(data => setResults(Array.isArray(data) ? data : []))
                                                 .catch(err => console.error("Search failed", err))
                                                 .finally(() => setLoading(false));
                                         }
@@ -233,55 +219,7 @@ const FindBloodPage = () => {
                 </AnimatePresence>
             </section>
 
-            {/* My Requests Tracker */}
-            <section className="space-y-6">
-                <h2 className="text-2xl font-bold text-white">My Retrieval Requests</h2>
-                <div className="space-y-4">
-                    {myRequests.length === 0 ? (
-                        <div className="p-8 text-center text-gray-500 glass-panel rounded-3xl border border-white/5">
-                            You haven't requested any blood for retrieval yet.
-                        </div>
-                    ) : (
-                        myRequests.map(req => (
-                            <div key={req.id} className={`glass-panel p-6 rounded-2xl border transition-all ${req.status === 'APPROVED' ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-white/5 bg-white/5'
-                                }`}>
-                                <div className="flex justify-between items-center">
-                                    <div className="space-y-1">
-                                        <div className="text-white font-bold flex items-center gap-3">
-                                            <span className="px-2 py-0.5 bg-white/10 rounded text-neon-red text-xs">{req.bloodGroup}</span>
-                                            <span>Request for {req.patientName}</span>
-                                        </div>
-                                        <div className="text-sm text-gray-400">
-                                            {req.organizationId ? `Targeted: ${req.hospitalName}` : `Hospital: ${req.hospitalName}`}
-                                        </div>
-                                        {req.status === 'APPROVED' && (
-                                            <motion.div
-                                                initial={{ x: -10, opacity: 0 }}
-                                                animate={{ x: 0, opacity: 1 }}
-                                                className="mt-2 text-emerald-400 font-bold bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/20 text-sm flex items-center gap-2"
-                                            >
-                                                <span>🚀</span> READY FOR PICKUP! Visit the bank to collect.
-                                            </motion.div>
-                                        )}
-                                        {req.status === 'UTILIZED' && (
-                                            <div className="mt-2 text-gray-400 text-sm italic">
-                                                ✔ Blood units collected and inventory updated.
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className={`px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-widest ${req.status === 'UTILIZED' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' :
-                                        req.status === 'PENDING' ? 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20' :
-                                            req.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]' :
-                                                'bg-red-500/10 text-red-500 border border-red-500/20'
-                                        }`}>
-                                        {req.status === 'UTILIZED' ? 'HANDED OVER' : req.status}
-                                    </div>
-                                </div>
-                            </div>
-                        ))
-                    )}
-                </div>
-            </section>
+            {/* History Moved to MyActivity */}
 
             {/* Request Form Modal */}
             <AnimatePresence>

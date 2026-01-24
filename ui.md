@@ -23,7 +23,7 @@ This version enhances your backend-strong system with a **production-grade, sexy
 
 ---
 
-## Phase 2 – Core Business Logic
+## Phase 2 – Core Business Lo
 
 ### Module 2: Blood Inventory Engine
 

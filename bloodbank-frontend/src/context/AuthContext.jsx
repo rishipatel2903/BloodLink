@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { authApi } from '../api/authApi';
 
 const AuthContext = createContext(null);
 
@@ -17,84 +18,63 @@ export const AuthProvider = ({ children }) => {
 
     // ✅ LOGIN
     const login = async (role, credentials) => {
-        const response = await fetch('http://localhost:8080/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(credentials),
-        });
+        try {
+            const data = await authApi.login(credentials);
+            if (!data.token) throw new Error("No token received");
 
-        if (!response.ok) {
-            throw new Error(await response.text());
+            // 🛡️ SECURITY: Enforce Role Validation
+            // Backend returns ROLE_USER or ROLE_ORG. Frontend passes USER or ORG.
+            const expectedRole = role === 'ORG' ? 'ROLE_ORG' : 'ROLE_USER';
+
+            if (data.role !== expectedRole) {
+                // Prevent login if roles mismatch
+                throw new Error(`Access Denied: You cannot login as an ${role === 'ORG' ? 'Organization' : 'Individual'} with this account.`);
+            }
+
+            const userData = { ...data, role: data.role };
+            setUser(userData);
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(userData));
+            return userData;
+        } catch (error) {
+            throw error; // Let UI handle it
         }
-
-        const data = await response.json();
-
-        const userData = { ...data, role: data.role };
-        setUser(userData);
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(userData));
-        return userData;
     };
 
-    // ✅ REGISTER USER (SEND OTP)
+    // ✅ REGISTER USER
     const registerUser = async (data) => {
-        const response = await fetch('http://localhost:8080/api/auth/register/user', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-        });
-
-        if (!response.ok) throw new Error(await response.text());
-        return await response.text();
+        return await authApi.registerUser(data);
     };
 
     // ✅ REGISTER ORGANIZATION
     const registerOrg = async (data) => {
-        const response = await fetch('http://localhost:8080/api/auth/register/org', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-        });
-
-        if (!response.ok) throw new Error(await response.text());
-        return await response.text();
+        return await authApi.registerOrg(data);
     };
 
     // ✅ VERIFY OTP
     const verifyOtp = async (email, otp) => {
-        const response = await fetch(
-            `http://localhost:8080/api/auth/verify-otp?email=${email}&otp=${otp}`,
-            { method: 'POST' }
-        );
-
-        if (!response.ok) throw new Error(await response.text());
-        return await response.text();
+        return await authApi.verifyOtp(email, otp);
     };
 
     // ✅ GOOGLE LOGIN
     const googleLogin = async (token) => {
-        const response = await fetch('http://localhost:8080/api/auth/google-login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token }),
-        });
-
-        if (!response.ok) {
-            throw new Error(await response.text());
+        try {
+            const data = await authApi.googleLogin(token);
+            const userData = { ...data, role: data.role };
+            setUser(userData);
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(userData));
+            return userData;
+        } catch (error) {
+            throw error;
         }
-
-        const data = await response.json();
-        const userData = { ...data, role: data.role };
-        setUser(userData);
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(userData));
-        return userData;
     };
 
     const logout = () => {
         setUser(null);
         localStorage.removeItem('user');
         localStorage.removeItem('token');
+        window.location.href = '/';
     };
 
     return (

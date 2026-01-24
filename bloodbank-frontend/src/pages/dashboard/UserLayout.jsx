@@ -10,7 +10,7 @@ const UserLayout = () => {
         { name: 'Dashboard', path: '/dashboard/user', icon: '🏠' },
         { name: 'Donate Blood', path: '/dashboard/user/donate', icon: '🩸' },
         { name: 'Find Blood', path: '/dashboard/user/find', icon: '🔍' },
-        { name: 'My Activity', path: '/dashboard/user/history', icon: '📜' },
+        { name: 'My Activity', path: '/dashboard/user/activity', icon: '📜' },
     ];
 
     return (

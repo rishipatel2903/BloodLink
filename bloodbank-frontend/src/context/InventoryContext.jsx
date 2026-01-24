@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import { inventoryApi } from '../api/inventoryApi';
 
 const InventoryContext = createContext(null);
 
@@ -18,11 +19,8 @@ export const InventoryProvider = ({ children }) => {
                 return;
             }
 
-            const response = await fetch(`http://localhost:8080/api/inventory/org/${user.id}`);
-            if (response.ok) {
-                const data = await response.json();
-                setBatches(data);
-            }
+            const data = await inventoryApi.getOrgInventory(user.id);
+            setBatches(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error("Failed to fetch inventory", error);
         } finally {
@@ -42,19 +40,9 @@ export const InventoryProvider = ({ children }) => {
     // ✅ Add Batch
     const addBatch = async (newBatch) => {
         try {
-            const user = JSON.parse(localStorage.getItem('user'));
             const batchPayload = { ...newBatch, organizationId: user.id, status: 'AVAILABLE' };
-
-            const response = await fetch('http://localhost:8080/api/inventory/add', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(batchPayload),
-            });
-
-            if (response.ok) {
-                const savedBatch = await response.json();
-                setBatches(prev => [savedBatch, ...prev]);
-            }
+            const savedBatch = await inventoryApi.addBatch(batchPayload);
+            setBatches(prev => [savedBatch, ...prev]);
         } catch (error) {
             console.error("Failed to add batch", error);
         }
@@ -63,7 +51,7 @@ export const InventoryProvider = ({ children }) => {
     // ✅ Delete Batch
     const deleteBatch = async (id) => {
         try {
-            await fetch(`http://localhost:8080/api/inventory/${id}`, { method: 'DELETE' });
+            await inventoryApi.deleteBatch(id);
             setBatches(prev => prev.filter(b => b.id !== id));
         } catch (error) {
             console.error("Failed to delete batch", error);
@@ -72,6 +60,7 @@ export const InventoryProvider = ({ children }) => {
 
     const updateStatus = (id, newStatus) => {
         // Placeholder for future update status API
+        // if (api.updateStatus) ...
         setBatches(prev => prev.map(b => b.id === id ? { ...b, status: newStatus } : b));
     };
 

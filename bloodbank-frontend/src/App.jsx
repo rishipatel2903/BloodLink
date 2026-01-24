@@ -12,6 +12,7 @@ import DonationPage from './pages/dashboard/DonationPage';
 import FindBloodPage from './pages/dashboard/FindBloodPage';
 import OrgDonations from './pages/dashboard/OrgDonations';
 import OrgRequests from './pages/dashboard/OrgRequests';
+import MyActivity from './pages/dashboard/MyActivity';
 
 const ProtectedRoute = ({ children, allowedRole }) => {
   const { user, loading } = useAuth();
@@ -48,7 +49,7 @@ function App() {
                 <Route index element={<UserHome />} />
                 <Route path="donate" element={<DonationPage />} />
                 <Route path="find" element={<FindBloodPage />} />
-                <Route path="history" element={<div className="text-white p-4">Activity History (Coming Soon)</div>} />
+                <Route path="activity" element={<MyActivity />} />
               </Route>
 
               {/* Organization Routes */}

@@ -19,15 +19,7 @@ const DonationPage = () => {
         }
     });
 
-    const fetchMyRequests = async () => {
-        try {
-            const response = await fetch(`http://localhost:8080/api/donations/user/${user.id}`);
-            const data = await response.json();
-            setMyRequests(data);
-        } catch (err) {
-            console.error("Failed to fetch my requests", err);
-        }
-    };
+
 
     useEffect(() => {
         // Fetch registered and verified Organizations
@@ -43,7 +35,7 @@ const DonationPage = () => {
             }
         };
         fetchOrgs();
-        if (user) fetchMyRequests();
+
     }, [user]);
 
     const handleBooking = async () => {
@@ -65,7 +57,7 @@ const DonationPage = () => {
 
             if (response.ok) {
                 alert("Appointment Booked Successfully!");
-                fetchMyRequests(); // Refresh list
+
                 setStep(3);
             }
         } catch (error) {
@@ -214,39 +206,7 @@ const DonationPage = () => {
                     </AnimatePresence>
                 </section>
 
-                {/* My Requests Tracker */}
-                <section className="space-y-6">
-                    <h2 className="text-2xl font-bold text-white">My Donation Status</h2>
-                    <div className="space-y-4">
-                        {myRequests.length === 0 ? (
-                            <div className="p-8 text-center text-gray-500 glass-panel rounded-3xl border border-white/5">
-                                You haven't made any donation requests yet.
-                            </div>
-                        ) : (
-                            myRequests.map(req => (
-                                <div key={req.id} className="glass-panel p-6 rounded-2xl border border-white/5 bg-white/5 flex justify-between items-center group hover:border-white/10 transition-all">
-                                    <div className="space-y-1">
-                                        <div className="text-white font-bold flex items-center gap-3">
-                                            <span>{orgs.find(o => o.id === req.organizationId)?.name || 'Processing...'}</span>
-                                            <span className="text-xs font-mono text-gray-500">#{req.id.slice(-6)}</span>
-                                        </div>
-                                        <div className="text-sm text-gray-400 flex items-center gap-4">
-                                            <span>📅 {req.appointmentDate}</span>
-                                            <span>🩸 {req.bloodGroup}</span>
-                                        </div>
-                                    </div>
-                                    <div className={`px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-widest ${req.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' :
-                                            req.status === 'PENDING' ? 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20' :
-                                                req.status === 'APPROVED' ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20' :
-                                                    'bg-red-500/10 text-red-500 border border-red-500/20'
-                                        }`}>
-                                        {req.status}
-                                    </div>
-                                </div>
-                            ))
-                        )}
-                    </div>
-                </section>
+                {/* History Moved to MyActivity */}
             </div>
         </div>
     );

@@ -24,14 +24,12 @@
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  justify-content: center;
   min-width: 320px;
   min-height: 100vh;
   transition: background-color 0.3s;
   background: radial-gradient(circle at 50% 0%, #2a0b12 0%, #0f172a 60%, #060b14 100%);
   overflow-x: hidden;
+  width: 100%;
 }
 
 /* Enhancing Glassmorphism */
