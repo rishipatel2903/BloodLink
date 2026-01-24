@@ -34,6 +34,7 @@ const InventoryGrid = ({ batches, onDelete, onUpdateStatus }) => {
                             <tr className="bg-white/5 border-b border-white/10 text-gray-400 text-sm">
                                 <th className="p-4 font-medium">Batch ID</th>
                                 <th className="p-4 font-medium">Blood Group</th>
+                                <th className="p-4 font-medium">Units</th>
                                 <th className="p-4 font-medium">Donor</th>
                                 <th className="p-4 font-medium min-w-[200px]">Expiry Status</th>
                                 <th className="p-4 font-medium">Status</th>
@@ -43,7 +44,7 @@ const InventoryGrid = ({ batches, onDelete, onUpdateStatus }) => {
                         <tbody>
                             {filtered.length === 0 ? (
                                 <tr>
-                                    <td colSpan="6" className="p-12 text-center text-gray-500">
+                                    <td colSpan="7" className="p-12 text-center text-gray-500">
                                         No batches found for this filter.
                                     </td>
                                 </tr>
@@ -57,6 +58,7 @@ const InventoryGrid = ({ batches, onDelete, onUpdateStatus }) => {
                                                 {batch.bloodGroup}
                                             </span>
                                         </td>
+                                        <td className="p-4 text-white font-bold">{batch.quantity}</td>
                                         <td className="p-4 text-gray-300 text-sm">{batch.donorName || batch.donor}</td>
                                         <td className="p-4">
                                             <ExpiryProgressBar collectionDate={batch.collectionDate} expiryDate={batch.expiryDate} />
@@ -64,7 +66,8 @@ const InventoryGrid = ({ batches, onDelete, onUpdateStatus }) => {
                                         <td className="p-4">
                                             <span className={`text-xs px-2 py-1 rounded uppercase tracking-wider font-semibold ${batch.status === 'AVAILABLE' ? 'bg-emerald-500/10 text-emerald-500' :
                                                 (batch.status === 'EXPIRED' || batch.status === 'DISCARDED') ? 'bg-red-500/10 text-red-500' :
-                                                    'bg-yellow-500/10 text-yellow-500'
+                                                    batch.status === 'UTILIZED' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' :
+                                                        'bg-yellow-500/10 text-yellow-500'
                                                 }`}>
                                                 {batch.status}
                                             </span>

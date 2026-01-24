@@ -31,4 +31,21 @@ public class InventoryController {
         service.deleteBatch(id);
         return ResponseEntity.ok().build();
     }
+
+    // --- Module 3.3 Endpoints ---
+
+    @GetMapping("/search")
+    public ResponseEntity<List<BloodInventory>> searchStock(@RequestParam String bloodGroup) {
+        return ResponseEntity.ok(service.searchByBloodGroup(bloodGroup));
+    }
+
+    @PostMapping("/{id}/reserve")
+    public ResponseEntity<BloodInventory> reserveBatch(@PathVariable String id, @RequestParam String userId) {
+        return ResponseEntity.ok(service.reserveBatch(id, userId));
+    }
+
+    @PostMapping("/{id}/confirm-pickup")
+    public ResponseEntity<BloodInventory> confirmPickup(@PathVariable String id) {
+        return ResponseEntity.ok(service.confirmPickup(id));
+    }
 }

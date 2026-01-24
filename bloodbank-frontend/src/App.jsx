@@ -6,17 +6,12 @@ import AuthPage from './pages/AuthPage';
 import OrgLayout from './pages/dashboard/OrgLayout';
 import InventoryPage from './pages/dashboard/InventoryPage';
 
-// Placeholder Dashboards
-const UserDashboard = () => {
-  const { logout, user } = useAuth();
-  return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold text-white mb-4">Welcome, {user?.name} 👋</h1>
-      <p className="text-neon-red mb-8">User Dashboard - Module 5 (Coming Soon)</p>
-      <button onClick={logout} className="px-6 py-2 bg-white/10 hover:bg-white/20 rounded-lg">Logout</button>
-    </div>
-  );
-};
+import UserLayout from './pages/dashboard/UserLayout';
+import UserHome from './pages/dashboard/UserHome';
+import DonationPage from './pages/dashboard/DonationPage';
+import FindBloodPage from './pages/dashboard/FindBloodPage';
+import OrgDonations from './pages/dashboard/OrgDonations';
+import OrgRequests from './pages/dashboard/OrgRequests';
 
 const ProtectedRoute = ({ children, allowedRole }) => {
   const { user, loading } = useAuth();
@@ -46,10 +41,15 @@ function App() {
                 path="/dashboard/user"
                 element={
                   <ProtectedRoute allowedRole="ROLE_USER">
-                    <UserDashboard />
+                    <UserLayout />
                   </ProtectedRoute>
                 }
-              />
+              >
+                <Route index element={<UserHome />} />
+                <Route path="donate" element={<DonationPage />} />
+                <Route path="find" element={<FindBloodPage />} />
+                <Route path="history" element={<div className="text-white p-4">Activity History (Coming Soon)</div>} />
+              </Route>
 
               {/* Organization Routes */}
               <Route
@@ -62,8 +62,8 @@ function App() {
               >
                 <Route index element={<Navigate to="inventory" replace />} />
                 <Route path="inventory" element={<InventoryPage />} />
-                <Route path="donors" element={<div className="text-white p-4">Donor Management (Module 6)</div>} />
-                <Route path="requests" element={<div className="text-white p-4">Request Handling (Module 3)</div>} />
+                <Route path="donors" element={<OrgDonations />} />
+                <Route path="requests" element={<OrgRequests />} />
               </Route>
 
             </Routes>

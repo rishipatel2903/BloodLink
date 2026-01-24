@@ -7,4 +7,5 @@ import java.util.Optional;
 public interface OrganizationRepository extends MongoRepository<Organization, String> {
     Optional<Organization> findByEmail(String email);
     Optional<Organization> findByLicenseNumber(String licenseNumber);
+    java.util.List<Organization> findByVerifiedTrue();
 }

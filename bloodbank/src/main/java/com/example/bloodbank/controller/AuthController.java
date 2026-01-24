@@ -222,4 +222,8 @@ public class AuthController {
         return "Mail test triggered";
     }
 
+    @GetMapping("/organizations")
+    public ResponseEntity<java.util.List<Organization>> getOrganizations() {
+        return ResponseEntity.ok(orgRepository.findByVerifiedTrue());
+    }
 }

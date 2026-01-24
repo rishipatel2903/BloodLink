@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { useAuth } from './AuthContext';
 
 const InventoryContext = createContext(null);
 
@@ -6,14 +7,11 @@ export const InventoryProvider = ({ children }) => {
     const [batches, setBatches] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    const { user } = useAuth();
+
     // ✅ Fetch Inventory
     const fetchInventory = async () => {
         try {
-            // TODO: Get actual logged-in Org ID. For now hardcoded or skipped if relying on backend user context
-            // Assuming we might need to filter by the logged in user later. 
-            // For now, let's just fetch all or by a test ID if needed.
-            // Actually, let's assume the user context has the Org ID.
-            const user = JSON.parse(localStorage.getItem('user'));
             if (!user || user.role !== 'ROLE_ORG') {
                 setBatches([]);
                 setLoading(false);
@@ -33,8 +31,13 @@ export const InventoryProvider = ({ children }) => {
     };
 
     useEffect(() => {
-        fetchInventory();
-    }, []);
+        if (user) {
+            fetchInventory();
+        } else {
+            setBatches([]);
+            setLoading(false);
+        }
+    }, [user]);
 
     // ✅ Add Batch
     const addBatch = async (newBatch) => {
@@ -73,7 +76,7 @@ export const InventoryProvider = ({ children }) => {
     };
 
     return (
-        <InventoryContext.Provider value={{ batches, loading, addBatch, updateStatus, deleteBatch }}>
+        <InventoryContext.Provider value={{ batches, loading, addBatch, updateStatus, deleteBatch, refreshInventory: fetchInventory }}>
             {children}
         </InventoryContext.Provider>
     );

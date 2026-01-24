@@ -12,4 +12,7 @@ public interface BloodInventoryRepository extends MongoRepository<BloodInventory
     List<BloodInventory> findByOrganizationId(String organizationId);
     List<BloodInventory> findByStatus(String status);
     List<BloodInventory> findByExpiryDateBeforeAndStatus(LocalDate date, String status);
+    List<BloodInventory> findByBloodGroupIgnoreCaseAndStatus(String bloodGroup, String status);
+    
+    List<BloodInventory> findByOrganizationIdAndBloodGroupAndStatus(String organizationId, String bloodGroup, String status);
 }

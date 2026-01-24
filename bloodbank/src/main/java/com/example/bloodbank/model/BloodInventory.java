@@ -12,6 +12,7 @@ public class BloodInventory {
     private String id;
     
     private String organizationId;
+    private String organizationName; // Denormalized for search performance
     private String bloodGroup; // A+, B-, etc.
     private int quantity; // Number of units in this batch
     private LocalDate collectionDate;
@@ -47,6 +48,14 @@ public class BloodInventory {
 
     public void setOrganizationId(String organizationId) {
         this.organizationId = organizationId;
+    }
+
+    public String getOrganizationName() {
+        return organizationName;
+    }
+
+    public void setOrganizationName(String organizationName) {
+        this.organizationName = organizationName;
     }
 
     public String getBloodGroup() {

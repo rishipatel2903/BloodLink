@@ -11,17 +11,17 @@ const InventoryPage = () => {
 
     if (loading) return <div className="text-center p-8 text-gray-500">Loading Inventory...</div>;
 
-    // Derived Stats
+    // Derived Stats (Total Units, not Batch counts)
     const totalUnits = batches.filter(b => {
         const isExpired = new Date(b.expiryDate) < new Date();
         return b.status === 'AVAILABLE' && !isExpired;
-    }).length;
+    }).reduce((sum, b) => sum + (b.quantity || 0), 0);
 
     // Group by Blood Group to find lowest stock (Excluding Expired)
     const stockByGroup = batches.reduce((acc, batch) => {
         const isExpired = new Date(batch.expiryDate) < new Date();
         if (batch.status === 'AVAILABLE' && !isExpired) {
-            acc[batch.bloodGroup] = (acc[batch.bloodGroup] || 0) + 1;
+            acc[batch.bloodGroup] = (acc[batch.bloodGroup] || 0) + (batch.quantity || 0);
         }
         return acc;
     }, {});
