@@ -89,15 +89,15 @@ const FindBloodPage = () => {
     }, {});
 
     return (
-        <div className="space-y-12 pb-20">
-            <section className="space-y-8">
+        <div className="space-y-12 pb-20 min-h-[80vh] flex flex-col justify-center items-center">
+            <section className="space-y-8 w-full max-w-6xl">
                 <header>
-                    <h1 className="text-3xl font-bold text-white mb-2">Find Blood Stock</h1>
-                    <p className="text-gray-400">Search real-time inventory at registered blood banks.</p>
+                    <h1 className="text-3xl font-bold text-white mb-2 text-center">Find Blood Stock</h1>
+                    <p className="text-gray-400 text-center">Search real-time inventory at registered blood banks.</p>
                 </header>
 
                 {/* Search Bar and Tabs */}
-                <div className="space-y-6 max-w-2xl">
+                <div className="space-y-6 max-w-2xl mx-auto">
                     <div className="flex gap-4">
                         <button
                             onClick={() => { setRequestMode('NORMAL'); setResults([]); }}

@@ -93,7 +93,7 @@ public class AuthController {
 
         // ----------- USER OTP VERIFY -----------
         Optional<User> userOpt = userRepository.findByEmail(email);
-        if (userOpt.isPresent()) {
+        if (userOpt.isPresent() && userOpt.get().getOtp() != null) {
             User user = userOpt.get();
 
             if (!user.getOtp().equals(otp)) {
