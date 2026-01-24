@@ -2,6 +2,7 @@ package com.example.bloodbank.service;
 
 import com.example.bloodbank.model.BloodInventory;
 import com.example.bloodbank.repository.BloodInventoryRepository;
+import com.example.bloodbank.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +18,12 @@ public class InventoryService {
     @Autowired
     private com.example.bloodbank.repository.OrganizationRepository orgRepository;
 
+    @Autowired
+    private TwilioService twilioService;
+
+    @Autowired
+    private UserRepository userRepository;
+
     // Add new batch
     public BloodInventory addBatch(BloodInventory inventory) {
         // Fetch and set Organization Name if not provided
@@ -30,7 +37,7 @@ public class InventoryService {
         if (inventory.getExpiryDate() == null) {
             inventory.setExpiryDate(LocalDate.now().plusDays(42));
         }
-        
+
         // Default status to AVAILABLE if not provided
         if (inventory.getStatus() == null || inventory.getStatus().isEmpty()) {
             inventory.setStatus("AVAILABLE");
@@ -39,7 +46,7 @@ public class InventoryService {
         // Generate Readable Custom ID (e.g., B-17060123)
         String customId = "B-" + System.currentTimeMillis() % 100000;
         inventory.setId(customId);
-        
+
         return repository.save(inventory);
     }
 
@@ -64,12 +71,12 @@ public class InventoryService {
     public void checkExpiry() {
         LocalDate today = LocalDate.now();
         List<BloodInventory> expiredList = repository.findByExpiryDateBeforeAndStatus(today, "AVAILABLE");
-        
+
         for (BloodInventory batch : expiredList) {
             batch.setStatus("DISCARDED");
             repository.save(batch);
         }
-        
+
         if (!expiredList.isEmpty()) {
             System.out.println("✅ Scheduled Task: Marked " + expiredList.size() + " batches as DISCARDED.");
         }
@@ -78,14 +85,15 @@ public class InventoryService {
     // --- Module 3.3 Methods ---
 
     public List<BloodInventory> searchByBloodGroup(String bloodGroup) {
-        if (bloodGroup == null) return java.util.Collections.emptyList();
-        
+        if (bloodGroup == null)
+            return java.util.Collections.emptyList();
+
         // Fix for common URL decoding issue where '+' becomes ' '
         String sanitizedGroup = bloodGroup.trim().replace(" ", "+");
         System.out.println("🔍 [InventorySearch] Query: [" + sanitizedGroup + "]");
-        
+
         List<BloodInventory> results = repository.findByBloodGroupIgnoreCaseAndStatus(sanitizedGroup, "AVAILABLE");
-        
+
         if (results.isEmpty()) {
             System.out.println("⚠ [InventorySearch] No AVAILABLE batches found for: " + sanitizedGroup);
             // Optionally check if any exist with NULL status (legacy/buggy data)
@@ -102,7 +110,7 @@ public class InventoryService {
                 }
             }
         }
-        
+
         return results;
     }
 
@@ -115,7 +123,7 @@ public class InventoryService {
         // We could store "reservedBy" logic here if we added a field to Entity
         return repository.save(batch);
     }
-    
+
     public BloodInventory confirmPickup(String batchId) {
         BloodInventory batch = repository.findById(batchId).orElseThrow(() -> new RuntimeException("Batch not found"));
         if (!"RESERVED".equals(batch.getStatus())) {
@@ -127,8 +135,9 @@ public class InventoryService {
 
     // --- FEFO Logic (First Expired, First Out) ---
     public void deductBloodFEFO(String orgId, String bloodGroup, int unitsToDeduct) {
-        List<BloodInventory> availableBatches = repository.findByOrganizationIdAndBloodGroupAndStatus(orgId, bloodGroup, "AVAILABLE");
-        
+        List<BloodInventory> availableBatches = repository.findByOrganizationIdAndBloodGroupAndStatus(orgId, bloodGroup,
+                "AVAILABLE");
+
         // Sort by expiry date (ascending) -> Least shelf life first
         availableBatches.sort(java.util.Comparator.comparing(BloodInventory::getExpiryDate));
 
@@ -139,7 +148,8 @@ public class InventoryService {
 
         int remainingToDeduct = unitsToDeduct;
         for (BloodInventory batch : availableBatches) {
-            if (remainingToDeduct <= 0) break;
+            if (remainingToDeduct <= 0)
+                break;
 
             int batchQuantity = batch.getQuantity();
             if (batchQuantity <= remainingToDeduct) {
@@ -153,6 +163,25 @@ public class InventoryService {
                 batch.setQuantity(batchQuantity - remainingToDeduct);
                 remainingToDeduct = 0;
                 repository.save(batch);
+            }
+        }
+
+        // --- Twilio Notification Logic ---
+        int finalTotalStock = repository.findByOrganizationIdAndBloodGroupAndStatus(orgId, bloodGroup, "AVAILABLE")
+                .stream().mapToInt(BloodInventory::getQuantity).sum();
+
+        if (finalTotalStock == 0) {
+            String orgName = orgRepository.findById(orgId).map(org -> org.getName()).orElse("Unknown organization");
+            String message = String.format(
+                    "URGENT: %s has run out of %s blood stock. Donors are requested to visit and donate.", orgName,
+                    bloodGroup);
+
+            java.util.List<com.example.bloodbank.model.User> donors = userRepository
+                    .findByBloodGroupIgnoreCase(bloodGroup);
+            for (com.example.bloodbank.model.User donor : donors) {
+                if (donor.getPhoneNumber() != null && !donor.getPhoneNumber().isEmpty()) {
+                    twilioService.sendSms(donor.getPhoneNumber(), message);
+                }
             }
         }
     }

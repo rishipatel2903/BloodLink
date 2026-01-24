@@ -191,7 +191,8 @@ const SignupForm = ({ role, onBack, onSwitchToLogin }) => {
         password: '',
         bloodGroup: '',
         license: '',
-        gender: ''
+        gender: '',
+        phoneNumber: ''
     });
 
     // ✅ STEP 1: Register & Send OTP
@@ -206,7 +207,8 @@ const SignupForm = ({ role, onBack, onSwitchToLogin }) => {
                     email: formData.email,
                     password: formData.password,
                     bloodGroup: formData.bloodGroup,
-                    gender: formData.gender
+                    gender: formData.gender,
+                    phoneNumber: formData.phoneNumber
                 });
             } else {
                 await registerOrg({
@@ -214,7 +216,8 @@ const SignupForm = ({ role, onBack, onSwitchToLogin }) => {
                     email: formData.email,
                     password: formData.password,
                     licenseNumber: formData.license,
-                    address: "Default Address"
+                    address: "Default Address",
+                    phoneNumber: formData.phoneNumber
                 });
             }
 
@@ -279,6 +282,9 @@ const SignupForm = ({ role, onBack, onSwitchToLogin }) => {
 
                     <InputGroup label="Email" type="email" value={formData.email}
                         onChange={(v) => setFormData({ ...formData, email: v })} />
+
+                    <InputGroup label="Phone Number" placeholder="+1234567890" value={formData.phoneNumber}
+                        onChange={(v) => setFormData({ ...formData, phoneNumber: v })} />
 
                     {role === 'USER' ? (
                         <div className="grid grid-cols-2 gap-4">

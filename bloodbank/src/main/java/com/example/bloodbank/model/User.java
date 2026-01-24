@@ -20,8 +20,8 @@ public class User {
     // Blood Bank Fields
     private String bloodGroup;
     private String gender;
+    private String phoneNumber;
     private LocalDateTime lastDonatedDate;
-
 
     // OTP & Verification Fields
     private String otp;
@@ -91,6 +91,14 @@ public class User {
 
     public void setLastDonatedDate(LocalDateTime lastDonatedDate) {
         this.lastDonatedDate = lastDonatedDate;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public String getOtp() {

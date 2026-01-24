@@ -31,7 +31,7 @@ const OrgRequests = () => {
 
     const handleStatusUpdate = async (id, status) => {
         try {
-            const response = await fetch(`http://localhost:8080/api/requests/${id}/status?status=${status}`, {
+            const response = await fetch(`http://localhost:8080/api/requests/${id}/status?status=${status}&orgId=${user.id}`, {
                 method: 'PUT'
             });
             if (response.ok) {
@@ -96,9 +96,9 @@ const OrgRequests = () => {
                                             {req.urgency}
                                         </span>
                                         <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${(req.status === 'FULFILLED' || req.status === 'UTILIZED') ? 'bg-emerald-500/10 text-emerald-500' :
-                                                req.status === 'PENDING' ? 'bg-yellow-500/10 text-yellow-500' :
-                                                    req.status === 'APPROVED' ? 'bg-blue-500/10 text-blue-400' :
-                                                        'bg-red-500/10 text-red-500'
+                                            req.status === 'PENDING' ? 'bg-yellow-500/10 text-yellow-500' :
+                                                req.status === 'APPROVED' ? 'bg-blue-500/10 text-blue-400' :
+                                                    'bg-red-500/10 text-red-500'
                                             }`}>
                                             {req.status}
                                         </span>

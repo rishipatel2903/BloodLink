@@ -47,7 +47,8 @@ public class BloodRequestController {
     }
 
     @PutMapping("/{id}/status")
-    public ResponseEntity<BloodRequest> updateStatus(@PathVariable String id, @RequestParam String status) {
-        return ResponseEntity.ok(service.updateStatus(id, status));
+    public ResponseEntity<BloodRequest> updateStatus(@PathVariable String id, @RequestParam String status,
+            @RequestParam(required = false) String orgId) {
+        return ResponseEntity.ok(service.updateStatus(id, status, orgId));
     }
 }

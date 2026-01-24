@@ -86,7 +86,18 @@
 			<version>2.0.0</version>
 		</dependency>
 
+		<!-- Twilio SDK -->
+		<dependency>
+			<groupId>com.twilio.sdk</groupId>
+			<artifactId>twilio</artifactId>
+			<version>9.16.0</version>
+		</dependency>
 
+		<!-- Redis (for Aiven Valkey) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-redis</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>
