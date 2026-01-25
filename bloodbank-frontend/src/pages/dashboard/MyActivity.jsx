@@ -7,12 +7,14 @@ import ActivitySummary from '../../components/activity/ActivitySummary';
 import DonationHistory from '../../components/activity/DonationHistory';
 import RetrievalHistory from '../../components/activity/RetrievalHistory';
 import ActivityTimeline from '../../components/activity/ActivityTimeline';
+import ReportDownloadModal from '../../components/dashboard/ReportDownloadModal';
 
 const MyActivity = () => {
     const { user } = useAuth();
     const [donations, setDonations] = useState([]);
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
     const fetchData = async () => {
         if (!user?.id) return;
@@ -94,12 +96,20 @@ const MyActivity = () => {
                     </motion.h1>
                     <p className="text-gray-400">Track your donations, requests, and complete history.</p>
                 </div>
-                <button
-                    onClick={fetchData}
-                    className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm font-bold text-neon-red transition-all active:scale-95"
-                >
-                    <span className="text-lg">↻</span> Refresh Status
-                </button>
+                <div className="flex gap-4">
+                    <button
+                        onClick={() => setIsReportModalOpen(true)}
+                        className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-neon-red to-red-600 hover:shadow-[0_0_15px_rgba(255,18,18,0.3)] rounded-xl text-sm font-bold text-white transition-all active:scale-95"
+                    >
+                        📄 Download Report
+                    </button>
+                    <button
+                        onClick={fetchData}
+                        className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm font-bold text-neon-red transition-all active:scale-95"
+                    >
+                        <span className="text-lg">↻</span> Refresh Status
+                    </button>
+                </div>
             </header>
 
             {/* Section 1: Summary Cards */}
@@ -142,6 +152,12 @@ const MyActivity = () => {
                 </div>
 
             </div>
+
+            <ReportDownloadModal
+                isOpen={isReportModalOpen}
+                onClose={() => setIsReportModalOpen(false)}
+                userId={user?.id}
+            />
         </div>
     );
 };
