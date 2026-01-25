@@ -45,12 +45,6 @@ export const NotificationProvider = ({ children }) => {
                 message = '📄 Your donation certificate is now available!';
                 type = 'success';
                 break;
-            default:
-                // Fallback for other events
-                if (event.type.includes('UPDATE')) {
-                    message = '🔄 Data refreshed via Real-time sync.';
-                    type = 'info';
-                }
         }
 
         if (message) {
@@ -70,9 +64,9 @@ export const NotificationProvider = ({ children }) => {
                             animate={{ opacity: 1, x: 0, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
                             className={`pointer-events-auto min-w-[300px] p-5 rounded-2xl border backdrop-blur-xl shadow-2xl flex items-center gap-4 ${n.type === 'urgent' ? 'bg-red-500/20 border-red-500/50 text-white' :
-                                    n.type === 'success' ? 'bg-emerald-500/20 border-emerald-500/50 text-white' :
-                                        n.type === 'warning' ? 'bg-orange-500/20 border-orange-500/50 text-white' :
-                                            'bg-blue-500/20 border-blue-500/50 text-white'
+                                n.type === 'success' ? 'bg-emerald-500/20 border-emerald-500/50 text-white' :
+                                    n.type === 'warning' ? 'bg-orange-500/20 border-orange-500/50 text-white' :
+                                        'bg-blue-500/20 border-blue-500/50 text-white'
                                 }`}
                         >
                             <div className="flex-1 font-medium">{n.message}</div>
