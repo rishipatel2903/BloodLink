@@ -97,10 +97,28 @@ public class BloodRequestService {
         System.out.println(
                 "[BloodRequestService] Updating status for request " + id + " to " + status + " (orgId=" + orgId + ")");
         BloodRequest request = repository.findById(id).orElseThrow(() -> new RuntimeException("Request not found"));
+
+        // Safety check for broadcasts: don't let someone else approve if it's already
+        // claimed
+        if (request.getOrganizationId() != null && orgId != null && !request.getOrganizationId().equals(orgId)) {
+            if ("APPROVED".equalsIgnoreCase(request.getStatus())) {
+                throw new RuntimeException("This request has already been approved by another organization.");
+            }
+        }
+
         request.setStatus(status);
-        if (orgId != null) {
+
+        // If it was a broadcast and is being approved, claim it
+        if (orgId != null && (request.getOrganizationId() == null || request.getOrganizationId().isEmpty())) {
+            if ("APPROVED".equalsIgnoreCase(status)) {
+                request.setOrganizationId(orgId);
+            }
+        } else if (orgId != null) {
+            // Even if already set, ensure we use the current orgId if it's a direct status
+            // update
             request.setOrganizationId(orgId);
         }
+
         BloodRequest saved = repository.save(request);
         System.out.println("[BloodRequestService] Updated request: " + saved);
 

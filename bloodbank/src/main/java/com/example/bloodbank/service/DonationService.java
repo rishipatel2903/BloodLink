@@ -43,7 +43,8 @@ public class DonationService {
 
     // 4. Update Status (Approve/Reject)
     public DonationRequest updateStatus(String id, String status) {
-        DonationRequest request = donationRepository.findById(id).orElseThrow(() -> new RuntimeException("Request not found"));
+        DonationRequest request = donationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Request not found"));
         request.setStatus(status);
         return donationRepository.save(request);
     }
@@ -51,8 +52,9 @@ public class DonationService {
     // 5. Complete Donation (The "Life Line" Logic)
     @org.springframework.transaction.annotation.Transactional
     public DonationRequest completeDonation(String id) {
-        DonationRequest request = donationRepository.findById(id).orElseThrow(() -> new RuntimeException("Request not found"));
-        
+        DonationRequest request = donationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Request not found"));
+
         if (!"APPROVED".equals(request.getStatus())) {
             throw new RuntimeException("Donation must be APPROVED before completion");
         }
@@ -66,7 +68,7 @@ public class DonationService {
         batch.setStatus("AVAILABLE");
         batch.setSourceDonorId(request.getUserId());
         batch.setDonorName(request.getUserName());
-        
+
         inventoryService.addBatch(batch); // Saves instantly
 
         // B. Update User Last Donated Date - Instantly
