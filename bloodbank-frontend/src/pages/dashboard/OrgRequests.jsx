@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useInventory } from '../../context/InventoryContext';
 import { motion } from 'framer-motion';
+import { useRealtime } from '../../hooks/useRealtime';
 
 const OrgRequests = () => {
     const { user } = useAuth();
@@ -24,10 +25,15 @@ const OrgRequests = () => {
     useEffect(() => {
         if (user) {
             fetchRequests();
-            const interval = setInterval(fetchRequests, 5000); // Poll every 5 seconds
-            return () => clearInterval(interval);
         }
-    }, [user.id]);
+    }, [user?.id]);
+
+    // REAL-TIME: Refresh on any new blood request or update
+    useRealtime((event) => {
+        if (event.type === 'NEW_BLOOD_REQUEST' || event.type === 'REQUEST_STATUS_UPDATED') {
+            fetchRequests();
+        }
+    });
 
     const handleStatusUpdate = async (id, status) => {
         try {

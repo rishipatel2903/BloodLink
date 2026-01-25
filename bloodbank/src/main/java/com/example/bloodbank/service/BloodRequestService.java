@@ -31,6 +31,12 @@ public class BloodRequestService {
     @Autowired
     private com.example.bloodbank.repository.BloodInventoryRepository inventoryRepository;
 
+    @Autowired
+    private com.example.bloodbank.repository.HospitalRepository hospitalRepository;
+
+    @Autowired
+    private RealtimeEventService eventService;
+
     public BloodRequest createRequest(BloodRequest request) {
         request.setStatus("PENDING");
         request.setRequestedAt(LocalDateTime.now());
@@ -58,6 +64,15 @@ public class BloodRequestService {
                 });
             }
         }
+
+        // Notify targeted Org or all Orgs if broadcast
+        if (saved.getOrganizationId() != null) {
+            eventService.sendOrgEvent(saved.getOrganizationId(), "NEW_BLOOD_REQUEST", saved);
+        } else {
+            // General broadcast for pending requests
+            eventService.broadcast("/topic/org/broadcast", "NEW_BLOOD_REQUEST", saved);
+        }
+
         return saved;
     }
 
@@ -70,8 +85,8 @@ public class BloodRequestService {
         return repository.findAll();
     }
 
-    public List<BloodRequest> getUserRequests(String userId) {
-        return repository.findByUserId(userId);
+    public List<BloodRequest> getHospitalRequests(String hospitalId) {
+        return repository.findByHospitalId(hospitalId);
     }
 
     public List<BloodRequest> getOrgRequests(String orgId) {
@@ -122,10 +137,10 @@ public class BloodRequestService {
         BloodRequest saved = repository.save(request);
         System.out.println("[BloodRequestService] Updated request: " + saved);
 
-        // --- Notification for User on APPROVAL ---
+        // --- Notification for Hospital on APPROVAL ---
         if ("APPROVED".equalsIgnoreCase(status)) {
-            userRepository.findById(saved.getUserId()).ifPresent(user -> {
-                if (user.getPhoneNumber() != null && !user.getPhoneNumber().isEmpty()) {
+            hospitalRepository.findById(saved.getHospitalId()).ifPresent(hospital -> {
+                if (hospital.getPhoneNumber() != null && !hospital.getPhoneNumber().isEmpty()) {
                     String orgName = "an organization";
                     if (saved.getOrganizationId() != null) {
                         orgName = orgRepository.findById(saved.getOrganizationId())
@@ -135,10 +150,14 @@ public class BloodRequestService {
                     String message = String.format(
                             "GREAT NEWS: Your request for %s blood has been APPROVED by %s. Please coordinate for pick-up.",
                             saved.getBloodGroup(), orgName);
-                    twilioService.sendSms(user.getPhoneNumber(), message);
+                    twilioService.sendSms(hospital.getPhoneNumber(), message);
                 }
             });
         }
+
+        // Notify Hospital about status update
+        eventService.sendHospitalEvent(saved.getHospitalId(), "REQUEST_STATUS_UPDATED", saved);
+
         return saved;
     }
 
@@ -156,6 +175,13 @@ public class BloodRequestService {
         request.setStatus("UTILIZED");
         request.setOrganizationId(finalOrgId); // Mark who fulfilled it if it was a broadcast
         BloodRequest saved = repository.save(request);
+
+        // Notify Hospital: Request Fulfilled
+        eventService.sendHospitalEvent(saved.getHospitalId(), "REQUEST_FULFILLED", saved);
+
+        // Notify Org: Inventory Updated
+        eventService.sendOrgEvent(finalOrgId, "INVENTORY_UPDATED", saved);
+
         System.out.println("[BloodRequestService] Request after fulfillment: " + saved);
         return saved;
     }

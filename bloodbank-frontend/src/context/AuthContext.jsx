@@ -19,16 +19,20 @@ export const AuthProvider = ({ children }) => {
     // ✅ LOGIN
     const login = async (role, credentials) => {
         try {
-            const data = await authApi.login(credentials);
+            let data;
+            if (role === 'HOSPITAL') {
+                data = await authApi.loginHospital(credentials);
+            } else {
+                data = await authApi.login(credentials);
+            }
+
             if (!data.token) throw new Error("No token received");
 
             // 🛡️ SECURITY: Enforce Role Validation
-            // Backend returns ROLE_USER or ROLE_ORG. Frontend passes USER or ORG.
-            const expectedRole = role === 'ORG' ? 'ROLE_ORG' : 'ROLE_USER';
+            const expectedRole = role === 'ORG' ? 'ROLE_ORG' : (role === 'HOSPITAL' ? 'ROLE_HOSPITAL' : 'ROLE_USER');
 
             if (data.role !== expectedRole) {
-                // Prevent login if roles mismatch
-                throw new Error(`Access Denied: You cannot login as an ${role === 'ORG' ? 'Organization' : 'Individual'} with this account.`);
+                throw new Error(`Access Denied: You cannot login as a ${role} with this account.`);
             }
 
             const userData = { ...data, role: data.role };
@@ -37,7 +41,7 @@ export const AuthProvider = ({ children }) => {
             localStorage.setItem('user', JSON.stringify(userData));
             return userData;
         } catch (error) {
-            throw error; // Let UI handle it
+            throw error;
         }
     };
 
@@ -51,8 +55,16 @@ export const AuthProvider = ({ children }) => {
         return await authApi.registerOrg(data);
     };
 
+    // ✅ REGISTER HOSPITAL
+    const registerHospital = async (data) => {
+        return await authApi.registerHospital(data);
+    };
+
     // ✅ VERIFY OTP
-    const verifyOtp = async (email, otp) => {
+    const verifyOtp = async (email, otp, role) => {
+        if (role === 'HOSPITAL') {
+            return await authApi.verifyHospitalOtp(email, otp);
+        }
         return await authApi.verifyOtp(email, otp);
     };
 
@@ -78,7 +90,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, registerUser, registerOrg, verifyOtp, googleLogin, loading }}>
+        <AuthContext.Provider value={{ user, login, logout, registerUser, registerOrg, registerHospital, verifyOtp, googleLogin, loading }}>
             {children}
         </AuthContext.Provider>
     );

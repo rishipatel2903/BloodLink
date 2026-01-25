@@ -9,6 +9,7 @@ import EligibilityTimer from '../../components/user/EligibilityTimer';
 import ImpactSummary from '../../components/user/ImpactSummary';
 import DonationTimeline from '../../components/user/DonationTimeline';
 import DonationChart from '../../components/user/DonationChart';
+import { useRealtime } from '../../hooks/useRealtime';
 
 const UserHome = () => {
     const { user } = useAuth();
@@ -18,40 +19,49 @@ const UserHome = () => {
     const [loading, setLoading] = useState(true);
 
     // Fetch User Data & Donations
+    const fetchData = async () => {
+        if (!user?.id) return;
+        try {
+            // Parallel fetch using Service Layer
+            const [userRes, donationsRes] = await Promise.all([
+                authApi.getCurrentUser(user.id).catch(err => {
+                    console.warn("Profile fetch failed, using stale context data", err);
+                    return user;
+                }),
+                donationApi.getUserDonations(user.id)
+            ]);
+
+            // Update user data (essential for lastDonatedDate sync)
+            setUserData(userRes || user);
+
+            // Filter only completed donations for stats
+            const rawDonations = Array.isArray(donationsRes) ? donationsRes : [];
+            const completedDonationList = rawDonations.map(d => ({
+                id: d.id,
+                date: d.appointmentDate,
+                units: 1,
+                orgName: d.orgName || "Blood Bank Center",
+                bloodGroup: d.bloodGroup,
+                status: d.status
+            })).filter(d => d.status === 'COMPLETED');
+
+            setDonations(completedDonationList);
+        } catch (error) {
+            console.error("Dashboard Data Fetch Error:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchData = async () => {
-            if (!user?.id) return;
-            try {
-                // Parallel fetch using Service Layer
-                const [userRes, donationsRes] = await Promise.all([
-                    authApi.getCurrentUser(user.id).catch(() => user), // Fallback if API missing
-                    donationApi.getUserDonations(user.id)
-                ]);
-
-                // Update user data (for lastDonatedDate)
-                setUserData(userRes || user);
-
-                // Filter only completed donations for stats
-                const rawDonations = Array.isArray(donationsRes) ? donationsRes : [];
-                const completedDonationList = rawDonations.map(d => ({
-                    id: d.id,
-                    date: d.appointmentDate,
-                    units: 1, // Default to 1 unit per donation request
-                    orgName: d.orgName || "Blood Bank Center",
-                    bloodGroup: d.bloodGroup,
-                    status: d.status
-                })).filter(d => d.status === 'COMPLETED');
-
-                setDonations(completedDonationList);
-            } catch (error) {
-                console.error("Dashboard Data Fetch Error:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchData();
     }, [user]);
+
+    // REAL-TIME: Listen for user-specific events (eligibility update, donation milestone etc.)
+    useRealtime((event) => {
+        console.log("Real-time update triggered:", event.type);
+        fetchData();
+    });
 
     // Derived Analytics Data for Chart
     const chartData = useMemo(() => {
@@ -71,43 +81,23 @@ const UserHome = () => {
             <HeroBanner userName={user?.name || 'Hero'} />
 
             {/* 2. Feature Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
 
-                {/* 2a. Eligibility Timer */}
+                {/* 2a. Eligibility Status */}
                 <div className="h-full">
                     <EligibilityTimer lastDonatedDate={userData?.lastDonatedDate || user?.lastDonatedDate} />
                 </div>
 
-                {/* 2b. Search Stock (Interactive Navigation) */}
-                <motion.div
-                    whileHover={{ scale: 1.03, boxShadow: "0 0 25px rgba(59, 130, 246, 0.15)" }}
-                    whileTap={{ scale: 0.96 }}
-                    onClick={() => navigate('/dashboard/user/find')}
-                    onKeyDown={(e) => e.key === 'Enter' && navigate('/dashboard/user/find')}
-                    role="button"
-                    tabIndex={0}
-                    className="glass-panel p-6 rounded-2xl border border-white/5 bg-white/5 flex flex-col justify-between h-full cursor-pointer group hover:bg-white/10 transition-colors"
-                >
-                    <div className="pointer-events-none">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="text-blue-400 text-3xl group-hover:scale-110 transition-transform duration-300">🔍</div>
-                            <span className="text-xs font-bold bg-blue-500/10 text-blue-400 px-2 py-1 rounded border border-blue-500/20">FIND</span>
-                        </div>
-                        <h3 className="text-white font-bold text-lg mb-2 group-hover:text-blue-400 transition-colors">Need Blood?</h3>
-                        <p className="text-sm text-gray-400 mb-4">Search real-time inventory at hospitals near you.</p>
-                    </div>
-                    <button className="w-full py-3 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 font-bold rounded-xl border border-blue-500/20 transition-all pointer-events-none group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-500 group-hover:shadow-[0_0_15px_rgba(59,130,246,0.5)]">
-                        Search Stock →
-                    </button>
-                </motion.div>
-
-                {/* 2c. Impact Summary */}
+                {/* 2b. Impact Summary */}
                 <div className="h-full">
-                    <div className="glass-panel p-6 rounded-2xl border border-white/5 bg-white/5 h-full flex flex-col justify-between">
+                    <div className="glass-panel p-6 rounded-[2rem] border border-white/5 bg-white/5 h-full flex flex-col justify-between shadow-2xl">
                         <div>
                             <div className="text-emerald-400 text-3xl mb-4">⭐</div>
-                            <h3 className="text-white font-bold text-lg mb-4">Your Impact</h3>
+                            <h3 className="text-white font-bold text-lg mb-4 tracking-tight">Your Impact</h3>
                             <ImpactSummary totalDonations={donations.length} livesSaved={donations.length * 3} />
+                        </div>
+                        <div className="mt-6 pt-6 border-t border-white/5">
+                            <p className="text-gray-500 text-xs italic">"Every drop counts. You've been a hero to families in need."</p>
                         </div>
                     </div>
                 </div>

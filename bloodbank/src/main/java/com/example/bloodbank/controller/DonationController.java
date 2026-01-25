@@ -40,4 +40,9 @@ public class DonationController {
     public ResponseEntity<DonationRequest> completeDonation(@PathVariable String id) {
         return ResponseEntity.ok(service.completeDonation(id));
     }
+
+    @GetMapping("/eligibility/{userId}")
+    public ResponseEntity<com.example.bloodbank.dto.EligibilityResponse> getEligibility(@PathVariable String userId) {
+        return ResponseEntity.ok(service.getEligibility(userId));
+    }
 }

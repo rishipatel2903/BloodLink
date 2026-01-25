@@ -24,6 +24,9 @@ public class InventoryService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private RealtimeEventService eventService;
+
     // Add new batch
     public BloodInventory addBatch(BloodInventory inventory) {
         // Fetch and set Organization Name if not provided
@@ -47,7 +50,15 @@ public class InventoryService {
         String customId = "B-" + System.currentTimeMillis() % 100000;
         inventory.setId(customId);
 
-        return repository.save(inventory);
+        BloodInventory saved = repository.save(inventory);
+
+        // Notify Org: Inventory Updated
+        eventService.sendOrgEvent(saved.getOrganizationId(), "INVENTORY_UPDATED", saved);
+
+        // GLOBAL BROADCAST: Inventory availability changed
+        eventService.broadcast("/topic/inventory", "INVENTORY_UPDATED", saved);
+
+        return saved;
     }
 
     // Get all inventory (Admin view)
@@ -165,6 +176,12 @@ public class InventoryService {
                 repository.save(batch);
             }
         }
+
+        // Notify Org: Inventory Updated
+        eventService.sendOrgEvent(orgId, "INVENTORY_UPDATED", bloodGroup);
+
+        // GLOBAL BROADCAST: Inventory deducted
+        eventService.broadcast("/topic/inventory", "INVENTORY_UPDATED", bloodGroup);
 
         // --- Twilio Notification Logic ---
         int finalTotalStock = repository.findByOrganizationIdAndBloodGroupAndStatus(orgId, bloodGroup, "AVAILABLE")

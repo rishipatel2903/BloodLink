@@ -1,15 +1,14 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { motion } from 'framer-motion';
 
-const UserLayout = () => {
+const HospitalLayout = () => {
     const { user, logout } = useAuth();
     const location = useLocation();
 
     const navItems = [
-        { name: 'Dashboard', path: '/dashboard/user', icon: '🏠' },
-        { name: 'Donate Blood', path: '/dashboard/user/donate', icon: '🩸' },
-        { name: 'My Activity', path: '/dashboard/user/activity', icon: '📜' },
+        { name: 'Dashboard', path: '/dashboard/hospital', icon: '🏠' },
+        { name: 'Request Blood', path: '/dashboard/hospital/request', icon: '➕' },
+        { name: 'Activities', path: '/dashboard/hospital/activity', icon: '📜' },
     ];
 
     return (
@@ -21,12 +20,12 @@ const UserLayout = () => {
                         <span className="text-3xl text-neon-red">❤️</span>
                         <span>BLOOD<span className="text-neon-red">LINK</span></span>
                     </div>
-                    <p className="text-xs text-emerald-400 mt-2 pl-1 font-mono uppercase tracking-[0.2em]">Donor Profile</p>
+                    <p className="text-xs text-blue-400 mt-2 pl-1 font-mono uppercase tracking-[0.2em]">Hospital Portal</p>
                 </div>
 
                 <div className="px-8 mb-8">
                     <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
-                        <div className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Welcome back</div>
+                        <div className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Welcome</div>
                         <div className="text-white font-bold truncate">{user?.name}</div>
                     </div>
                 </div>
@@ -62,9 +61,8 @@ const UserLayout = () => {
 
             {/* Main Content */}
             <main className="flex-1 overflow-y-auto relative">
-                {/* Background Ambient Glow */}
                 <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-neon-red/5 blur-[150px] pointer-events-none rounded-full" />
-                <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-emerald-500/5 blur-[120px] pointer-events-none rounded-full" />
+                <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-500/5 blur-[120px] pointer-events-none rounded-full" />
 
                 <div className="p-8 max-w-7xl mx-auto relative z-10">
                     <Outlet />
@@ -74,4 +72,4 @@ const UserLayout = () => {
     );
 };
 
-export default UserLayout;
+export default HospitalLayout;

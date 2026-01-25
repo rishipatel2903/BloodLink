@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { inventoryApi } from '../api/inventoryApi';
+import { useRealtime } from '../hooks/useRealtime';
 
 const InventoryContext = createContext(null);
 
@@ -36,6 +37,13 @@ export const InventoryProvider = ({ children }) => {
             setLoading(false);
         }
     }, [user]);
+
+    // REAL-TIME: Refresh inventory on any inventory-related event
+    useRealtime((event) => {
+        if (event.type === 'INVENTORY_UPDATED' || event.type === 'DONATION_COMPLETED') {
+            fetchInventory();
+        }
+    });
 
     // ✅ Add Batch
     const addBatch = async (newBatch) => {

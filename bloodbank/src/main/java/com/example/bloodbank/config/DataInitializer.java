@@ -15,7 +15,9 @@ import java.time.LocalDateTime;
 public class DataInitializer {
 
     @Bean
-    public CommandLineRunner initData(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public CommandLineRunner initData(UserRepository userRepository,
+            com.example.bloodbank.repository.HospitalRepository hospitalRepository,
+            PasswordEncoder passwordEncoder) {
         return args -> {
             // Check if data already exists to avoid duplicates
             if (userRepository.count() == 0) {
@@ -41,22 +43,36 @@ public class DataInitializer {
                 testUser2.setRole(Role.ROLE_USER);
                 testUser2.setBloodGroup("A+");
                 testUser2.setGender("Male");
-                testUser2.setLastDonatedDate(LocalDateTime.now().minusMonths(4));// Eligible to donate
+                testUser2.setLastDonatedDate(LocalDateTime.now().minusDays(40));// 16 days remaining
                 testUser2.setVerified(true);
                 userRepository.save(testUser2);
 
                 System.out.println("Test user created: user@test.com / password123");
-            } else {
-                // Ensure the test user is verified even if they already exist
-                userRepository.findByEmail("user@test.com").ifPresent(user -> {
-                    if (!user.isVerified()) {
-                        user.setVerified(true);
-                        userRepository.save(user);
-                        System.out.println("Updated existing test user to VERIFIED.");
-                    }
-                });
-                System.out.println("Database already initialized.");
             }
+
+            // Hospital Initialization
+            if (hospitalRepository.count() == 0) {
+                System.out.println("Initializing Hospital data...");
+                com.example.bloodbank.model.Hospital hospital = new com.example.bloodbank.model.Hospital();
+                hospital.setName("City General Hospital");
+                hospital.setEmail("hospital@test.com");
+                hospital.setPassword(passwordEncoder.encode("password123"));
+                hospital.setLicenseNumber("LIC-HSP-7788");
+                hospital.setAddress("123 Healthcare Blvd, Medical District");
+                hospital.setPhoneNumber("+15550199");
+                hospital.setVerified(true);
+                hospitalRepository.save(hospital);
+                System.out.println("Test Hospital created: hospital@test.com / password123");
+            }
+
+            // Ensure test users are verified
+            userRepository.findByEmail("user@test.com").ifPresent(user -> {
+                if (!user.isVerified()) {
+                    user.setVerified(true);
+                    userRepository.save(user);
+                    System.out.println("Updated existing test user to VERIFIED.");
+                }
+            });
         };
     }
 }

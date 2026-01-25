@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useInventory } from '../../context/InventoryContext';
 import { donationApi } from '../../api/donationApi';
 import { motion } from 'framer-motion';
+import { useRealtime } from '../../hooks/useRealtime';
 
 const OrgDonations = () => {
     const { user } = useAuth();
@@ -24,6 +25,13 @@ const OrgDonations = () => {
     useEffect(() => {
         if (user?.id) fetchDonations();
     }, [user.id]);
+
+    // REAL-TIME: Refresh on new appointment or completion
+    useRealtime((event) => {
+        if (event.type === 'NEW_APPOINTMENT' || event.type === 'DONATION_COMPLETED') {
+            fetchDonations();
+        }
+    });
 
     const handleStatusUpdate = async (id, status) => {
         try {

@@ -226,4 +226,11 @@ public class AuthController {
     public ResponseEntity<java.util.List<Organization>> getOrganizations() {
         return ResponseEntity.ok(orgRepository.findByVerifiedTrue());
     }
+
+    @GetMapping("/user/{id}")
+    public ResponseEntity<User> getUserProfile(@PathVariable String id) {
+        return userRepository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
 }

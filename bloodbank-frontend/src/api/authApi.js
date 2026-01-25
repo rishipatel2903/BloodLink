@@ -14,6 +14,11 @@ export const authApi = {
     // Google
     googleLogin: (token) => api.post('/auth/google-login', { token }),
 
+    // Hospital specific
+    registerHospital: (data) => api.post('/hospital/register', data),
+    loginHospital: (credentials) => api.post('/hospital/login', credentials),
+    verifyHospitalOtp: (email, otp) => api.post(`/hospital/verify-otp?email=${email}&otp=${otp}`),
+
     // Fallback/Utility
-    getCurrentUser: (id) => api.get(`/users/${id}`),
+    getCurrentUser: (id) => api.get(`/auth/user/${id}`),
 };

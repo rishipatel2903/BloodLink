@@ -31,9 +31,9 @@ public class BloodRequestController {
         return ResponseEntity.ok(service.getOrgRequests(orgId));
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<BloodRequest>> getUserRequests(@PathVariable String userId) {
-        return ResponseEntity.ok(service.getUserRequests(userId));
+    @GetMapping("/hospital/{hospitalId}")
+    public ResponseEntity<List<BloodRequest>> getHospitalRequests(@PathVariable String hospitalId) {
+        return ResponseEntity.ok(service.getHospitalRequests(hospitalId));
     }
 
     @PostMapping("/{id}/fulfill")

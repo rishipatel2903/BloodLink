@@ -5,26 +5,29 @@ const PortalSelector = ({ onSelect }) => {
         <div className="flex flex-col md:flex-row gap-8 items-stretch justify-center p-8 w-full max-w-5xl">
             <PortalCard
                 title="Individual"
-                subtitle="For Donors & Recipients"
-                description="Donate blood, request help during emergencies, and track your lifesaving impact."
+                subtitle="For Donors"
+                description="Donate blood and track your saves. Every drop counts in our mission to save lives."
                 icon="🩸"
                 onClick={() => onSelect('USER')}
                 delay={0.1}
             />
 
-            <div className="flex items-center justify-center">
-                <div className="w-16 h-[2px] bg-white/10 md:w-[2px] md:h-16 relative">
-                    <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#0f172a] px-3 text-gray-500 font-medium text-sm">OR</span>
-                </div>
-            </div>
+            <PortalCard
+                title="Hospital"
+                subtitle="For Medical Care"
+                description="Request blood for your patients, manage emergency requirements, and track deliveries."
+                icon="🚑"
+                onClick={() => onSelect('HOSPITAL')}
+                delay={0.2}
+            />
 
             <PortalCard
                 title="Organization"
-                subtitle="For Hospitals & Blood Banks"
-                description="Manage blood inventory, organize donation camps, and handle emergency requests."
-                icon="🏥"
+                subtitle="For Blood Banks"
+                description="Manage blood inventory, organize donation camps, and fulfill hospital blood requests."
+                icon="🏦"
                 onClick={() => onSelect('ORG')}
-                delay={0.2}
+                delay={0.3}
             />
         </div>
     );

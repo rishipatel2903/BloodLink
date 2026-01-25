@@ -182,7 +182,7 @@ import OTPModal from './OTPModal';
 import { useAuth } from '../context/AuthContext';
 
 const SignupForm = ({ role, onBack, onSwitchToLogin }) => {
-    const { registerUser, registerOrg, verifyOtp } = useAuth();
+    const { registerUser, registerOrg, registerHospital, verifyOtp } = useAuth();
     const [step, setStep] = useState(1); // 1: Form, 2: OTP
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
@@ -192,7 +192,8 @@ const SignupForm = ({ role, onBack, onSwitchToLogin }) => {
         bloodGroup: '',
         license: '',
         gender: '',
-        phoneNumber: ''
+        phoneNumber: '',
+        address: ''
     });
 
     // ✅ STEP 1: Register & Send OTP
@@ -210,13 +211,22 @@ const SignupForm = ({ role, onBack, onSwitchToLogin }) => {
                     gender: formData.gender,
                     phoneNumber: formData.phoneNumber
                 });
+            } else if (role === 'HOSPITAL') {
+                await registerHospital({
+                    name: formData.name,
+                    email: formData.email,
+                    password: formData.password,
+                    licenseNumber: formData.license,
+                    address: formData.address || "Default Address",
+                    phoneNumber: formData.phoneNumber
+                });
             } else {
                 await registerOrg({
                     name: formData.name,
                     email: formData.email,
                     password: formData.password,
                     licenseNumber: formData.license,
-                    address: "Default Address",
+                    address: formData.address || "Default Address",
                     phoneNumber: formData.phoneNumber
                 });
             }
@@ -237,7 +247,7 @@ const SignupForm = ({ role, onBack, onSwitchToLogin }) => {
         setLoading(true);
 
         try {
-            await verifyOtp(formData.email, code); // ✅ verify OTP with backend
+            await verifyOtp(formData.email, code, role); // ✅ verify OTP with backend
 
             alert("🎉 Email verified successfully! Now login.");
             setStep(1);
@@ -273,7 +283,9 @@ const SignupForm = ({ role, onBack, onSwitchToLogin }) => {
 
                 <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">Create Account</h2>
                 <p className="text-gray-400 mb-8 font-light">
-                    Join as <span className="text-neon-red font-medium">{role === 'USER' ? 'a Donor' : 'an Organization'}</span>
+                    Join as <span className="text-neon-red font-medium">
+                        {role === 'USER' ? 'a Donor' : (role === 'HOSPITAL' ? 'a Hospital' : 'an Organization')}
+                    </span>
                 </p>
 
                 <form onSubmit={handleSignup} className="space-y-6">
@@ -302,12 +314,20 @@ const SignupForm = ({ role, onBack, onSwitchToLogin }) => {
                             />
                         </div>
                     ) : (
-                        <InputGroup
-                            label="License Number"
-                            placeholder="LIC-XXXX-XXXX"
-                            value={formData.license}
-                            onChange={(v) => setFormData({ ...formData, license: v })}
-                        />
+                        <>
+                            <InputGroup
+                                label="License Number"
+                                placeholder="LIC-XXXX-XXXX"
+                                value={formData.license}
+                                onChange={(v) => setFormData({ ...formData, license: v })}
+                            />
+                            <InputGroup
+                                label="Address"
+                                placeholder="Street, City, Country"
+                                value={formData.address}
+                                onChange={(v) => setFormData({ ...formData, address: v })}
+                            />
+                        </>
                     )}
 
                     <InputGroup label="Password" type="password" value={formData.password}

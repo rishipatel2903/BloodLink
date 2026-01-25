@@ -1,11 +1,11 @@
 import { motion } from 'framer-motion';
 
-const ActivitySummary = ({ totalDonations = 0, totalRequests = 0, livesImpacted = 0 }) => {
+const ActivitySummary = ({ totalDonations = 0, totalRequests = 0, livesImpacted = 0, hideRequests = false }) => {
     const cards = [
         { label: 'Total Donations', value: totalDonations, icon: '🩸', color: 'text-white' },
-        { label: 'Blood Requests', value: totalRequests, icon: '🚑', color: 'text-blue-400' },
+        { label: 'Blood Requests', value: totalRequests, icon: '🚑', color: 'text-blue-400', hide: hideRequests },
         { label: 'Lives Impacted', value: livesImpacted, icon: '❤️', color: 'text-neon-red' },
-    ];
+    ].filter(card => !card.hide);
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
