@@ -1,0 +1,38 @@
+services:
+  # Backend Service
+  - type: web
+    name: bloodbank-backend
+    runtime: docker
+    region: singapore # Optional: choose a region close to you
+    plan: free # Optional: defaults to free
+    rootDir: bloodbank-backend
+    dockerContext: bloodbank-backend
+    envVars:
+      - key: JAVA_VERSION
+        value: 17
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: SPRING_DATA_REDIS_HOST
+        sync: false
+      - key: SPRING_DATA_REDIS_PORT
+        sync: false
+      - key: REDIS_PASSWORD
+        sync: false
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_PHONE_NUMBER
+        sync: false
+
+

@@ -1,4 +1,5 @@
 spring.application.name=bloodbank
+server.port=${PORT:8080}
 
 # MongoDB Atlas Configuration
 spring.data.mongodb.uri=${MONGODB_URI}

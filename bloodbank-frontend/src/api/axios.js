@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // ✅ Base Axios Instance
 const api = axios.create({
-    baseURL: 'http://localhost:8080/api', // Centralized Base URL
+    baseURL: (import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080') + '/api', // Centralized Base URL
     timeout: 15000, // 15s timeout
     headers: {
         'Content-Type': 'application/json',
