@@ -6,7 +6,6 @@ services:
     region: singapore # Optional: choose a region close to you
     plan: free # Optional: defaults to free
     rootDir: bloodbank-backend
-    dockerContext: bloodbank-backend
     envVars:
       - key: JAVA_VERSION
         value: 17
